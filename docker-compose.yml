@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+
+    mysql:
+        image: mariadb:10.3
+        container_name: node-mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_ROOT_HOST: '%'
+        volumes:
+            - ./mysql:/var/lib/mysql
+        ports:
+            - 3306:3306
+        networks:
+            - jonysthil
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: node-phpmyadmin
+        restart: unless-stopped
+        ports:
+            - 81:80
+        environment:
+            PMA_HOST: mysql
+            PMA_USER: root
+            PMA_PASSWORD: password
+            UPLOAD_LIMIT: 20000000
+        depends_on:
+            - mysql
+        networks:
+            - jonysthil
+
+    app:
+        build: .
+        container_name: node-server
+        depends_on:
+          - mysql
+        links:
+          - mysql
+        restart: unless-stopped
+        #env_file: ./.env
+        ports:
+          - 3000:3000
+        volumes:
+          - .:/app
+        networks:
+            - jonysthil
+
+
+# Definimos el nombre de la red.
+networks:
+    jonysthil:
+        driver: bridge
